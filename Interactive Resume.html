@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Resume Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        .dialog {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.363);
+            color: white;
+            text-align: center;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .dialog.visible {
+            display: block;
+        }
+
+        .homepage {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: url('images/2.jpg'); /* Set your background image here */
+            background-size: cover; /* Ensure it covers the entire page */
+            background-position: center; /* Center the background image */
+            background-repeat: no-repeat; /* Prevent image repetition */
+        }
+
+        .homepage h1,
+        .homepage p {
+            color: white;
+        }
+
+        .character-selection {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .character {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            cursor: pointer;
+            overflow: hidden;  /* Ensure image fits the box without overflow */
+        }
+
+        .character img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;  /* Make sure image covers the area of the box */
+        }
+
+        .character.selected {
+            border: 3px solid rgb(0, 68, 255);
+        }
+
+        .start-button {
+            padding: 10px 20px;
+            background-color: rgb(30, 11, 207);
+            color: white;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .start-button:hover {
+            background-color: rgba(7, 32, 159, 0.644);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+
+
+    </style>
+</head>
+<body>
+    <div id="homepage" class="homepage">
+        <header class="hero-header">
+            <h1>Welcome to My Interactive Resume!</h1>
+            <p>Embark on a journey through my career and experiences.</p>
+        </header>
+
+        <section class="character-selection-container">
+            <h2>Select Your Character:</h2>
+            <div class="character-selection">
+                <div class="character" data-character="red">
+                    <img src="images/red-character.png" alt="Red Character">
+                </div>
+                <div class="character" data-character="blue">
+                    <img src="images/blue-character.png" alt="Blue Character">
+                </div>
+                <div class="character" data-character="green">
+                    <img src="images/green-character.png" alt="Green Character">
+                </div>
+            </div>
+        </section>
+
+        <button class="start-button" disabled>Start</button>
+    </div>
+
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #0d1b2a;
+            color: white;
+            text-align: center;
+        }
+
+        /* Hero Header Styling */
+        .hero-header {
+            background: linear-gradient(120deg, #1e3b7248, #2a529853);
+            padding: 40px 20px;
+            border-bottom: 5px solid #ffcc0000;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.285);
+        }
+
+        .hero-header h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        .hero-header p {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+
+        /* Character Selection */
+        .character-selection-container {
+            margin-top: 30px;
+        }
+
+        .character-selection {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .character {
+            width: 120px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+            transition: transform 0.3s ease, background 0.3s ease;
+            cursor: pointer;
+        }
+
+        .character img {
+            width: 80%;
+        }
+
+        .character:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Start Button */
+        .start-button {
+            margin-top: 30px;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: #0e59e4;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: not-allowed;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        .start-button:enabled {
+            cursor: pointer;
+            background: #00ddff;
+            transform: scale(1.05);
+        }
+    </style>
+
+    <div class="overlay hidden">Use Arrow Keys to Move, Space to Jump</div>
+    <div id="dialog" class="dialog"></div>
+
+    <canvas id="gameCanvas" class="hidden"></canvas>
+
+    <script>
+        const homepage = document.getElementById('homepage');
+        const backgroundMusic = new Audio('audio/bg-music.mp3');
+        // Set music properties
+        backgroundMusic.loop = true;  // Loop the music
+        backgroundMusic.volume = 0.5; // Adjust volume (0.0 - 1.0)
+
+        function playMusic() {
+            backgroundMusic.play().catch(error => {
+                console.log("User interaction required to play audio:", error);
+            });
+        }
+
+        document.addEventListener('click', playMusic);
+        document.addEventListener('keydown', playMusic);
+
+        const startButton = document.querySelector('.start-button');
+        const characters = document.querySelectorAll('.character');
+        const overlay = document.querySelector('.overlay');
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const layers = [
+            { image: new Image(), speed: 0.2 }, // Farthest background (slowest)
+            { image: new Image(), speed: 0.5 },
+            { image: new Image(), speed: 0.8 },
+            { image: new Image(), speed: 1.2 } // Closest foreground (fastest)
+        ];
+
+        // Assign image sources (replace with actual image paths)
+        layers[0].image.src = 'images/cloud_1.png';
+        layers[1].image.src = 'images/cloud_2.png';
+        layers[2].image.src = 'images/cloud_3.png';
+        layers[3].image.src = 'images/cloud_4.png';
+
+        const dialog = document.getElementById('dialog');
+        const background = new Image();
+        background.src = 'images/3.jpg';
+        
+        let selectedCharacter = null;
+        let playerColor = 'red'; // Default color
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        characters.forEach(character => {
+            character.addEventListener('click', () => {
+                characters.forEach(c => c.classList.remove('selected'));
+                character.classList.add('selected');
+                selectedCharacter = character.getAttribute('data-character');
+                playerColor = selectedCharacter;
+                player.image = new Image(); // Create a new Image object
+                player.image.src = character.querySelector('img').getAttribute('src'); // Set the image source
+                startButton.disabled = false; // Enable the Start button
+            });
+        });
+
+        startButton.addEventListener('click', () => {
+            homepage.classList.add('hidden');
+            canvas.classList.remove('hidden');
+            overlay.classList.remove('hidden');
+            update();
+        });
+
+        // Game Variables
+        let player = {
+            x: 50,
+            y: canvas.height - 200,
+            width: 100,
+            height: 100,
+            speed: 5,
+            dx: 0,
+            dy: 0,
+            gravity: 1,
+            jumpStrength: -15,
+            onGround: true,
+            image: null // Placeholder for the player image
+        };
+
+        // Sections: Spread across the canvas horizontally, all with equal width
+        const sectionWidth = canvas.width;  // Each section will take up the entire width of the canvas
+        let sections = [
+            { name: 'About Me', x: 0, width: sectionWidth, color: 'black', content: 'Hi, I am Mckenzhie Frauline M. Echevarria, 21 years old.', xRange: [0, 200] },
+            { name: 'Education', x: sectionWidth, width: sectionWidth, color: 'black', content:[
+                    "Currently taking a Bachelor of Science in Computer Engineering course.",
+                    "Studying at the Polytechnic University of the Philippines - Paranaque Campus",
+                ], xRange: [201, 400] },
+            { name: 'Experience', x: 2 * sectionWidth, width: sectionWidth, color: 'black', content: 'I have worked as an Intern at Highly Succeed Inc. The departmen that I have chosen are the Website Development Department (Backend) and the Graphics Design Department. In addition, I have work as a customer service representative at Majorel Company ', xRange: [401, 600] },
+            { name: 'Skills', x: 3 * sectionWidth, width: sectionWidth, color: 'black', content: 'My skills in terms of programming includes Python, Laravel, PHP, HTML, CSS, JavaScript, GNU Ocatve and 3D Rendering', xRange: [601, 800] },
+            { name: 'Contact', x: 4 * sectionWidth, width: sectionWidth, color: 'black', content: 'You can contact me through email at mckenzhie03@gmail.com', xRange: [801, 1000] },
+            { name: 'The End', x: 5 * sectionWidth, width: sectionWidth, color: 'black', content: 'Thank you for playing! Hope you enjoyed this simple resume game.', xRange: [1001, 1200] },
+            { name: '', x: 6 * sectionWidth, width: sectionWidth, color: 'black', content: '', xRange: [1201, 1400] }
+        ];
+
+        let currentPopupText = sections[0].content; // Default text
+
+        function updatePopup(characterX) {
+        sections.forEach((section) => {
+            if (characterX >= section.xRange[0] && characterX <= section.xRange[1]) {
+            currentPopupText = section.content;
+            document.getElementById("infoPopup").innerText = currentPopupText;
+            }
+        });
+        }
+
+        document.addEventListener("keydown", function(event) {
+        if (event.key === "ArrowRight") {
+            characterX += 10; // Move right
+            updatePopup(characterX);
+        }
+        });
+
+        let camera = {
+            x: 0,
+            speed: 5,
+            minX: 0,
+            maxX: (sections.length - 1) * sectionWidth
+        };
+
+        function drawBackground() {
+            const bgWidth = canvas.width;
+            const bgHeight = canvas.height;
+
+            layers.forEach(layer => {
+                const bgOffsetX = -(camera.x * layer.speed) % bgWidth; // Move layer at different speeds
+
+                // Draw the layer twice for a seamless loop effect
+                ctx.drawImage(layer.image, bgOffsetX, 0, bgWidth, bgHeight);
+                ctx.drawImage(layer.image, bgOffsetX + bgWidth, 0, bgWidth, bgHeight);
+            });
+        }
+
+        function drawPlayer() {
+            if (player.image) {
+                ctx.drawImage(player.image, player.x - camera.x, player.y, player.width, player.height);
+            } else {
+                ctx.fillStyle = playerColor; // Fallback if no image is selected
+                ctx.fillRect(player.x - camera.x, player.y, player.width, player.height);
+            }
+        }
+
+        function drawSections() {
+            sections.forEach(section => {
+                ctx.fillStyle = section.color;
+                ctx.fillRect(section.x - camera.x, canvas.height - 100, section.width, 150); // Adjust position with camera
+                ctx.fillStyle = 'white';
+                ctx.font = '25px Arial';
+                ctx.fillText(section.name, section.x - camera.x + 20, canvas.height - 60);
+            });
+        }
+
+        function clear() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function newPos() {
+            player.x += player.dx;
+            player.y += player.dy;
+
+            let groundLevel = canvas.height - 100; // Increased to account for bigger character
+
+            if (player.y + player.height < groundLevel) {
+                player.dy += player.gravity; // Apply gravity
+                player.onGround = false;
+            } else {
+                player.dy = 0;
+                player.onGround = true;
+                player.y = groundLevel - player.height; // Prevent sinking into black section
+            }
+
+            // Prevent going off screen
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > camera.maxX) player.x = camera.maxX - player.width;
+
+            // Move camera based on player position
+            if (player.x > camera.x + canvas.width - 200) {  // Trigger camera move when player is near end of screen
+                camera.x += camera.speed;
+            }
+
+            if (player.x < camera.x + 200) { // Trigger camera move when player is near start of screen
+                camera.x -= camera.speed;
+            }
+
+            // Ensure camera stays within bounds
+            if (camera.x < camera.minX) camera.x = camera.minX;
+            if (camera.x > camera.maxX) camera.x = camera.maxX;
+        }
+
+        function checkCollision() {
+            let foundSection = null;
+
+            sections.forEach(section => {
+                if (player.x >= section.x && player.x <= section.x + section.width) {
+                    foundSection = section;
+                }
+            });
+
+            if (foundSection) {
+                if (foundSection.name === 'Contact') {
+                    dialog.innerHTML = `
+                        <p>${foundSection.content}</p>
+                        <button id="emailButton" style="padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">Send Email</button>
+                    `;
+                    dialog.classList.add('visible');
+
+                    // Ensure event listener is added AFTER the button is created
+                    setTimeout(() => {
+                        const emailButton = document.getElementById('emailButton');
+                        if (emailButton) {
+                            emailButton.addEventListener('click', function() {
+                                window.location.href = "mailto:mckenzhie03@gmail.com?subject=Inquiry&body=Hello, I would like to ask about...";
+                            });
+                        }
+                    }, 100);
+
+                } else {
+                    dialog.textContent = foundSection.content;
+                    dialog.classList.add('visible');
+                }
+            } else {
+                dialog.classList.remove('visible');
+            }
+        }
+
+        function update() {
+            clear();
+            drawBackground();
+            drawSections();
+            drawPlayer();
+            newPos();
+            checkCollision();
+            requestAnimationFrame(update);
+        }
+
+        function moveRight() {
+            player.dx = player.speed;
+        }
+
+        function moveLeft() {
+            player.dx = -player.speed;
+        }
+
+        function jump() {
+            if (player.onGround) {
+                player.dy = player.jumpStrength;
+                player.onGround = false;
+            }
+        }
+
+        function stop() {
+            player.dx = 0;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') moveRight();
+            if (e.key === 'ArrowLeft') moveLeft();
+            if (e.key === ' ') jump();
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') stop();
+        });
+
+    </script>
+</body>
+</html>
