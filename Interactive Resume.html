@@ -49,7 +49,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-image: url('/Images/2.jpg'); /* Set your background image here */
+            background-image: url('./Images/2.jpg'); /* Set your background image here */
             background-size: cover; /* Ensure it covers the entire page */
             background-position: center; /* Center the background image */
             background-repeat: no-repeat; /* Prevent image repetition */
@@ -120,13 +120,13 @@
             <h2>Select Your Character:</h2>
             <div class="character-selection">
                 <div class="character" data-character="red">
-                    <img src="/Images/red-character.png" alt="Red Character">
+                    <img src="./Images/red-character.png" alt="Red Character">
                 </div>
                 <div class="character" data-character="blue">
-                    <img src="/Images/blue-character.png" alt="Blue Character">
+                    <img src="./Images/blue-character.png" alt="Blue Character">
                 </div>
                 <div class="character" data-character="green">
-                    <img src="/Images/green-character.png" alt="Green Character">
+                    <img src="./Images/green-character.png" alt="Green Character">
                 </div>
             </div>
         </section>
@@ -229,7 +229,7 @@
 
     <script>
         const homepage = document.getElementById('homepage');
-        const backgroundMusic = new Audio('/Audio/bg-music.mp3');
+        const backgroundMusic = new Audio('./Audio/bg-music.mp3');
         // Set music properties
         backgroundMusic.loop = true;  // Loop the music
         backgroundMusic.volume = 0.5; // Adjust volume (0.0 - 1.0)
@@ -256,10 +256,10 @@
         ];
 
         // Assign image sources (replace with actual image paths)
-        layers[0].image.src = '/Images/cloud_1.png';
-        layers[1].image.src = '/Images/cloud_2.png';
-        layers[2].image.src = '/Images/cloud_3.png';
-        layers[3].image.src = '/Images/cloud_4.png';
+        layers[0].image.src = './Images/cloud_1.png';
+        layers[1].image.src = './Images/cloud_2.png';
+        layers[2].image.src = './Images/cloud_3.png';
+        layers[3].image.src = './Images/cloud_4.png';
 
         const dialog = document.getElementById('dialog');
         const background = new Image();
